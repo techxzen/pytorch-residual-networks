@@ -6,7 +6,9 @@
 
 import os
 import sys
+import random
 import numpy as np
+import PIL.Image as Image
 from torch.utils.data import Dataset
 
 
@@ -18,8 +20,10 @@ def parse_batch_bin(batch_idx, batch_path, save_data_path, file_size):
     one_batch_num = 10000
     for j in range(one_batch_num):
         idx = batch_idx * one_batch_num + j
-        data = raw_data[j:j+file_size]
+        data = raw_data[j*file_size:j*file_size+file_size]
+        data = [data[x] for x in range(len(data))]
         data = np.array(data)
+        data.dtype = np.uint8
         data.tofile(os.path.join(save_data_path, "%d.raw" %(idx)))
     fi.close()   
     print("%s processed!" %(batch_path))
@@ -41,13 +45,13 @@ def preprocess_cifar10(dataset_dir):
 
     batch_name = "test_batch.bin"
     batch_path = os.path.join(dataset_dir, batch_name)
-    parse_batch_bin(0, batch_path, test_data_path, 3072)
+    parse_batch_bin(0, batch_path, test_data_path, 3073)
 
 
 
 class Cifar10(Dataset):
 
-    def __init__(self, dir_path, is_vali, is_labeled, train_ratio, transform_func):
+    def __init__(self, dir_path, is_labeled, is_vali, train_ratio, transform_func):
         super(Cifar10, self).__init__()
         
         raw_list = os.listdir(dir_path)
@@ -75,19 +79,20 @@ class Cifar10(Dataset):
 
     def __getitem__(self, index):
         file = self.file_list_[index]
-        data = np.fromfile(file)
+        data = np.fromfile(file, dtype=np.uint8)
         data.dtype = np.uint8
 
         if (self.is_labeled_):
-            label = data[0]
+            label = int(data[0])
             img   = data[1:]
         else:
-            img = data[:32]
-        
+            img = data
+
+        img.shape = (3,32,32)
         img = np.transpose(img, (1,2,0))
 
         img = Image.fromarray(img)
-        img = self.transform_func(img)
+        img = self.transform_(img)
 
         if (self.is_labeled_):
             return (img, label)
