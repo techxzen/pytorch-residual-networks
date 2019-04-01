@@ -6,12 +6,8 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-sys.path.append('data/')
-import Cifar10
-sys.path.append('models/')
-import VGG
-import PlainNet
-import ResNet
+from data import *
+from models import *
 
 import torchvision
 from torchvision import transforms, utils
@@ -22,11 +18,10 @@ import pandas as pd
 # set device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+layer_n = int(sys.argv[1])
 
-layer_n = 3
-
-ckpt_name = "checkpoints/ResNet-%d_cifar10pad.pth" %(layer_n*6+2)
-log_name = "./logs/ResNet-%d_cifar10pad_log/" %(layer_n*6+2)
+ckpt_name = "checkpoints/ResNet-%d_cifar10.pth" %(layer_n*6+2)
+log_name = "./logs/ResNet-%d_cifar10_log/" %(layer_n*6+2)
 
 #ckpt_name = "checkpoints/PlainNet-%d_cifar10.pth" %(layer_n*6+2)
 #log_name = "./logs/PlainNet-%d_cifar10_log/" %(layer_n*6+2)
@@ -175,31 +170,32 @@ def test(cnn_model, real_test_loader):
 
 
    
-def weight_init(m):
+def weight_init(cnn_model):
     ## offical usage:
-    # if type(m) == nn.Linear:
-    #    m.weight.data.fill_(1.0)
-    #    print(m.weight)
+    # if type(cnn_model) == nn.Linear:
+    #    cnn_model.weight.data.fill_(1.0)
+    #    print(cnn_model.weight)
 
-    if isinstance(m, nn.Linear):
-        nn.init.xavier_normal_(m.weight)
-        nn.init.constant_(m.bias, 0)
+    if isinstance(cnn_model, nn.Linear):
+        nn.init.xavier_normal_(cnn_model.weight)
+        nn.init.constant_(cnn_model.bias, 0)
 
-    elif isinstance(m, nn.Conv2d):
-        nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+    elif isinstance(cnn_model, nn.Conv2d):
+        nn.init.kaiming_normal_(cnn_model.weight, mode='fan_out', nonlinearity='relu')
 
-    elif isinstance(m, nn.BatchNorm2d):
-        nn.init.constant_(m.weight, 1)
-        nn.init.constant_(m.bias, 0)
+    elif isinstance(cnn_model, nn.BatchNorm2d):
+        nn.init.constant_(cnn_model.weight, 1)
+        nn.init.constant_(cnn_model.bias, 0)
 
 
 
 def main():
-    if (len(sys.argv) < 2):
+    if (len(sys.argv) < 3):
         print("Error: usage: python main.py train/test!")
         exit(0)
     else:
-        mode = sys.argv[1]
+        # argv[1] for global layer_n
+        mode = sys.argv[2]
 
     print(mode)
 
@@ -220,8 +216,8 @@ def main():
         ])
 
     # model create
-    #model = PlainNet.PlainNet(layer_n).to(device)
-    model = ResNet.ResNet(layer_n).to(device)
+    model = ResNet(layer_n).to(device)
+    #model = PlainNet(layer_n).to(device)
     print("Model created!")
 
     start_epoch = 0
@@ -244,11 +240,11 @@ def main():
 
         train_data_ratio = 1.0
 
-        test_dataset = Cifar10.Cifar10(test_data_path, True, False, train_data_ratio, transform_func)
+        test_dataset = Cifar10(test_data_path, True, False, train_data_ratio, transform_func)
         test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=8)
 
-        train_dataset = Cifar10.Cifar10(train_data_path, True, False, train_data_ratio, transform_enhanc_func)
-        val_dataset = Cifar10.Cifar10(train_data_path, True, True,train_data_ratio, transform_func)
+        train_dataset = Cifar10(train_data_path, True, False, train_data_ratio, transform_enhanc_func)
+        val_dataset = Cifar10(train_data_path, True, True,train_data_ratio, transform_func)
         train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=8)
         val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=8)
 

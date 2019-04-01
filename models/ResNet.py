@@ -1,4 +1,3 @@
-
 #coding:utf-8
 #
 # Plain CNN architectures:
@@ -11,10 +10,10 @@ import torch
 import torch.nn as nn
 
 
-class BasicBlock(nn.Module):
+class ResBlockA(nn.Module):
 
     def __init__(self, in_chann, chann, stride):
-        super(BasicBlock, self).__init__()
+        super(ResBlockA, self).__init__()
 
         self.conv1 = nn.Conv2d(in_chann, chann, kernel_size=3, padding=1, stride=stride)
         self.bn1   = nn.BatchNorm2d(chann)
@@ -47,11 +46,33 @@ class BasicBlock(nn.Module):
         return z
 
 
+class PlainBlock(nn.Module):
 
-class ResNet(nn.Module):
+    def __init__(self, in_chann, chann, stride):
+        super(PlainBlock, self).__init__()
+
+        self.conv1 = nn.Conv2d(in_chann, chann, kernel_size=3, padding=1, stride=stride)
+        self.bn1   = nn.BatchNorm2d(chann)
+        
+        self.conv2 = nn.Conv2d(chann, chann, kernel_size=3, padding=1, stride=1)
+        self.bn2   = nn.BatchNorm2d(chann)
+
+    def forward(self, x):
+        y = self.conv1(x)
+        y = self.bn1(y)
+        y = nn.functional.relu(y)
+        
+        y = self.conv2(y)
+        y = self.bn2(y)
+        y = nn.functional.relu(y)
+        return y
+
+
+class BaseNet(nn.Module):
     
-    def __init__(self, n):
-        super(ResNet, self).__init__()
+    def __init__(self, Block, n):
+        super(BaseNet, self).__init__()
+        self.Block = Block
         self.conv0 = nn.Conv2d(3, 16, kernel_size=3, padding=1)
         self.bn0   = nn.BatchNorm2d(16)
         self.convs  = self._make_layers(n)
@@ -84,10 +105,16 @@ class ResNet(nn.Module):
                     chann = chann * 2
                     stride = 2
 
-                layers += [BasicBlock(in_chann, chann, stride)]
+                layers += [self.Block(in_chann, chann, stride)]
 
                 stride = 1
                 in_chann = chann
 
         return nn.Sequential(*layers)
 
+
+def ResNet(n):
+    return BaseNet(ResBlockA, n)
+
+def PlainNet(n):
+    return BaseNet(PlainBlock, n)
