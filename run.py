@@ -200,6 +200,7 @@ def main():
     print(mode)
 
     # enhance
+    # Use the torch.transforms, a package on PIL Image.
     transform_enhanc_func = transforms.Compose([
         transforms.RandomHorizontalFlip(p=0.5),
         transforms.RandomCrop(32, padding=4, padding_mode='edge'),

@@ -91,7 +91,9 @@ class Cifar10(Dataset):
         img.shape = (3,32,32)
         img = np.transpose(img, (1,2,0))
 
+        # First, convert np.array to PIL.Image
         img = Image.fromarray(img)
+        # Then, we can use torchvision.transforms
         img = self.transform_(img)
 
         if (self.is_labeled_):
