@@ -6,7 +6,7 @@ This repository is a PyTorch re-implementation of Kaiming He's "*Deep Residual L
 
 #### 1. Dataset
 
-Dataset: https://www.cs.toronto.edu/~kriz/cifar.html。
+Dataset: https://www.cs.toronto.edu/~kriz/cifar.html
 
 Data layout: (binaries)
 

@@ -93,7 +93,8 @@ def train(cnn_model, start_epoch, train_loader, test_loader, lr, auto_lr=True):
             optimizer.step()
 
             if (train_iter % 10 == 0):
-                print("Epoch %d/%d, Step %d/%d, iter %d Loss: %f, lr: %f" %(epoch, start_epoch+num_epochs, batch_idx, len(train_loader), train_iter, loss.item(), learning_rate))
+                print("Epoch %d/%d, Step %d/%d, iter %d Loss: %f, lr: %f" \
+                     %(epoch, start_epoch+num_epochs, batch_idx, len(train_loader), train_iter, loss.item(), learning_rate))
                 train_writer.add_scalar('data/loss', loss, train_iter)
 
             if (train_iter % 100 == 0):
